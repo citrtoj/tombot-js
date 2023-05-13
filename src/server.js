@@ -25,5 +25,5 @@ client.on("messageCreate", async(message) => {
   });
 
 module.exports = () => {
-    client.login(process.env.DISCORD_TOKEN);
+    client.login(`${process.env.DISCORD_TOKEN}`);
 };
