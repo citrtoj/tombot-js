@@ -1,10 +1,30 @@
 const RegexCommand = require("./RegexCommand");
 const axios = require("axios")
 const {iAmAt} = require("./IAmAt.js");
+const { config } = require("dotenv");
+const { Configuration, OpenAIApi } = require("openai");
 
 module.exports = {
     iAmAt: iAmAt,
     //short commands
+    gpt: new RegexCommand().setPattern(
+        /\b^(?:(tomgpt[,. ]*?\s*))(.*)/gimu
+    ).setGroupsRequirement(true).setCalledFunction(
+        async (message, groups) => {
+            let prompt = groups[2];
+            
+            const configuration = new Configuration({
+              apiKey: process.env.OPENAI_TOKEN,
+            });
+            const openai = new OpenAIApi(configuration);
+            
+            const completion = await openai.createChatCompletion({
+              model: "gpt-3.5-turbo",
+              messages: [{"role": "user", "content": "Reply in the way that Tom Scott, the educational YouTuber, would reply."}, {role: "user", content: prompt}],
+            });
+            await message.channel.send(completion.data.choices[0].message.content.trim());
+        }
+    ),
     piss: new RegexCommand().setPattern(/\b\d*?(pee|wees|pees|pisses|urinates|piss|peeing|pissing|peed|urination|urinate|urine|urinated|micturition)\d*?\b/gimu).setCalledFunction( (message) => {
         message.channel.send({ files: ["media/piss.jpg"] });
         if (Math.random() >= 0.69) {
@@ -48,7 +68,7 @@ module.exports = {
     } ),
     tombotChoose: new RegexCommand().setPattern(/\b(?:(tombot[,. ]*?choose( between)?)\s*)(.*)/gimu).setGroupsRequirement(true).setCalledFunction(
         (message, matches) => {
-            promptsList = matches[3].split(',').filter( (word) => {
+            let promptsList = matches[3].split(',').filter( (word) => {
                     return word !== "";
                 }
             ).map(word => {return word.trim()});
@@ -57,7 +77,7 @@ module.exports = {
     ),
     echo: new RegexCommand().setPattern(/\b^(?:(tombot[,. ]*?echo)\s*)(.*)/gimu).setGroupsRequirement(true).setCalledFunction(
         (message, groups) => {
-            prompt = groups[2];
+            let prompt = groups[2];
             if (prompt !== "") {
                 message.channel.send(prompt);
             }
