@@ -18,11 +18,17 @@ module.exports = {
             });
             const openai = new OpenAIApi(configuration);
             
-            const completion = await openai.createChatCompletion({
-              model: "gpt-3.5-turbo",
-              messages: [{"role": "user", "content": "Reply in the way that Tom Scott, the educational YouTuber, would reply."}, {role: "user", content: prompt}],
-            });
-            await message.channel.send(completion.data.choices[0].message.content.trim());
+            try {
+                const completion = await openai.createChatCompletion({
+                    model: "gpt-3.5-turbo",
+                    messages: [{"role": "user", "content": "Reply in the way that Tom Scott, the educational YouTuber, would reply."}, {role: "user", content: prompt}],
+                });
+                await message.channel.send(completion.data.choices[0].message.content.trim());
+            }
+            catch {
+                await message.channel.send("Sorry, TomGPT request failed.");
+            }
+
         }
     ),
     piss: new RegexCommand().setPattern(/\b\d*?(pee|wees|pees|pisses|urinates|piss|peeing|pissing|peed|urination|urinate|urine|urinated|micturition)\d*?\b/gimu).setCalledFunction( (message) => {
