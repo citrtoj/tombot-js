@@ -24,6 +24,9 @@ client.on("messageCreate", async(message) => {
     })
   });
 
+
+
 module.exports = () => {
     client.login(`${process.env.DISCORD_TOKEN}`);
+    console.log("Logged into Discord!");
 };

@@ -12,21 +12,36 @@ module.exports = {
     ).setGroupsRequirement(true).setCalledFunction(
         async (message, groups) => {
             let prompt = groups[2];
-            
             const configuration = new Configuration({
               apiKey: process.env.OPENAI_TOKEN,
             });
             const openai = new OpenAIApi(configuration);
             
             try {
+                if (typeof global.GPTMessages === 'undefined') {
+                    global.GPTMessages = [ {
+                        "role": "user",
+                        "content": "Pretend you are Tom Scott, the educational YouTuber. Reply to every message from now on as if you were him."
+                    } ];
+                }
+                global.GPTMessages.push( {
+                    "role": "user",
+                    "content": prompt
+                } );
+                
                 const completion = await openai.createChatCompletion({
                     model: "gpt-3.5-turbo",
-                    messages: [{"role": "user", "content": "Reply in the way that Tom Scott, the educational YouTuber, would reply."}, {role: "user", content: prompt}],
+                    messages: global.GPTMessages
                 });
                 await message.channel.send(completion.data.choices[0].message.content.trim());
+                global.GPTMessages.push( {
+                    "role": "assistant",
+                    "content": completion.data.choices[0].message.content.trim()
+                })
             }
             catch {
                 await message.channel.send("Sorry, TomGPT request failed.");
+                global.GPTMessages.pop(); //last user message
             }
 
         }
