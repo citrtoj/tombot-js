@@ -43,7 +43,9 @@ module.exports = {
                 await message.channel.send("Sorry, TomGPT request failed.");
                 global.GPTMessages.pop(); //last user message
             }
-
+            while (global.GPTMessages.length > 20) {
+                global.GPTMessages.splice(1, 1);
+            }
         }
     ),
     piss: new RegexCommand().setPattern(/\b\d*?(pee|wees|pees|pisses|urinates|piss|peeing|pissing|peed|urination|urinate|urine|urinated|micturition)\d*?\b/gimu).setCalledFunction( (message) => {
