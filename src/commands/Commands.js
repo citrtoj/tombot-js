@@ -16,35 +16,41 @@ module.exports = {
               apiKey: process.env.OPENAI_TOKEN,
             });
             const openai = new OpenAIApi(configuration);
-            
+            if (typeof global.GPTMessages === 'undefined') {
+                global.GPTMessages = new Map();
+            }
+            if (!global.GPTMessages.has(message.channel.id)) {
+                global.GPTMessages.set(message.channel.id, []);
+            }
             try {
-                if (typeof global.GPTMessages === 'undefined') {
-                    global.GPTMessages = [ {
+                if (global.GPTMessages.get(message.channel.id).length === 0) {
+                    global.GPTMessages.get(message.channel.id).push( { //get() returns reference to object
                         "role": "user",
                         "content": "Pretend you are Tom Scott, the educational YouTuber. Reply to every message from now on as if you were him."
-                    } ];
+                    } );
                 }
-                global.GPTMessages.push( {
+                global.GPTMessages.get(message.channel.id).push( {
                     "role": "user",
                     "content": prompt
                 } );
                 
                 const completion = await openai.createChatCompletion({
                     model: "gpt-3.5-turbo",
-                    messages: global.GPTMessages
+                    messages: global.GPTMessages.get(message.channel.id)
                 });
                 await message.channel.send(completion.data.choices[0].message.content.trim());
-                global.GPTMessages.push( {
+                global.GPTMessages.get(message.channel.id).push( {
                     "role": "assistant",
                     "content": completion.data.choices[0].message.content.trim()
                 })
             }
-            catch {
+            catch (e) {
+                console.log(e);
                 await message.channel.send("Sorry, TomGPT request failed.");
-                global.GPTMessages.pop(); //last user message
+                global.GPTMessages.get(message.channel.id).pop(); //last user message
             }
-            while (global.GPTMessages.length > 20) {
-                global.GPTMessages.splice(1, 1);
+            while (global.GPTMessages.get(message.channel.id).length > 100) {
+                global.GPTMessages.get(message.channel.id).splice(1, 1);
             }
         }
     ),
