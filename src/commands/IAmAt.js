@@ -1,8 +1,4 @@
-const appDir = process.cwd();
 const { createCanvas, loadImage } = require('canvas');
-const imageDownloader = require("image-downloader");
-const fs = require("fs");
-const { fail } = require("assert");
 const RegexCommand = require("./RegexCommand");
 const axios = require("axios");
 const Discord = require("discord.js");
@@ -21,12 +17,10 @@ const cropRes = (sourceWidth, sourceHeight, destWidth, destHeight) => {
         throw new Error("Widths cannot be 0!");
     }
     if (sourceWidth / sourceHeight >= destWidth / destHeight) {
-        //iau height-ul full
         resObj.sw = resObj.sh * destWidth / destHeight;
         resObj.sx = (sourceWidth - resObj.sw) / 2;
     }
     else {
-        //iau width-ul full
         resObj.sh = destHeight * resObj.sw / destWidth;
         resObj.sy = (sourceHeight - resObj.sh) / 2;
     }
@@ -80,44 +74,37 @@ module.exports = {
         try {
             const options = {
                 method: 'GET',
-                url: 'https://contextualwebsearch-websearch-v1.p.rapidapi.com/api/Search/ImageSearchAPI',
-                params: {
-                  q: location,
-                  pageNumber: '1',
-                  pageSize: '5',
-                  autoCorrect: 'true'
-                },
+                url: 'https://bing-image-search1.p.rapidapi.com/images/search',
+                params: {q: location},
                 headers: {
                   'X-RapidAPI-Key': rapidAPIToken,
-                  'X-RapidAPI-Host': 'contextualwebsearch-websearch-v1.p.rapidapi.com'
+                  'X-RapidAPI-Host': 'bing-image-search1.p.rapidapi.com'
                 }
-              };
-              
+            };
             const imgSearchResponse = await axios.request(options);
             let background = imgSearchResponse.data.value[
                 Math.floor(Math.random() * imgSearchResponse.data.value.length)
             ];
-            backgroundURL = background.url;
+            backgroundURL = background.contentUrl;
             backgroundResolution = { width: background.width, height: background.height };
         }
-        catch {
+        catch(e) {
             message.channel.send(failureMessage + " (Could not obtain background image link)");
+            console.error("Could not obtain background image link.", e);
             return;
         }
 
         //SECOND STEP: get URL of imgflip
         try {
-            if (true /*message.attachments.size === 0 ; I'll add more to this in the future*/) {
-                const imgflipTemplate = "343044476";
-                const imgflipResponse = await axios.get(
-                    `https://api.imgflip.com/caption_image?template_id=${imgflipTemplate}&username=${imgflipUsername}&password=${imgflipToken}&text0=${topText}&text1=${location}`
-                );
-                imgflipURL = imgflipResponse.data.data.url;
-                //console.log(imgflipURL);
-            }
+            const imgflipTemplate = "343044476";
+            const imgflipResponse = await axios.get(
+                `https://api.imgflip.com/caption_image?template_id=${imgflipTemplate}&username=${imgflipUsername}&password=${imgflipToken}&text0=${topText}&text1=${location}`
+            );
+            imgflipURL = imgflipResponse.data.data.url;
         }
         catch {
             message.channel.send(failureMessage + " (Could not obtain ImgFlip image link)");
+            console.error("Could not obtain ImgFlip image link.", e);
             return;
         }
         
