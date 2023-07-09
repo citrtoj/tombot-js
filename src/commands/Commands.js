@@ -1,7 +1,6 @@
 const RegexCommand = require("./RegexCommand");
 const axios = require("axios")
 const {iAmAt} = require("./IAmAt.js");
-const { config } = require("dotenv");
 const { Configuration, OpenAIApi } = require("openai");
 
 module.exports = {
@@ -12,6 +11,13 @@ module.exports = {
     ).setGroupsRequirement(true).setCalledFunction(
         async (message, groups) => {
             let prompt = groups[2];
+            if (/^reset$/gimu.exec(prompt.trim()) !== null) {
+                if (typeof global.GPTMessages !== 'undefined') {
+                    if (global.GPTMessages.has(message.channel.id)) {
+                        global.GPTMessages.set(message.channel.id, []);
+                    }
+                }
+            }
             const configuration = new Configuration({
               apiKey: process.env.OPENAI_TOKEN,
             });
