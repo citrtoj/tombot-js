@@ -9,10 +9,8 @@ const GPT = new RegexCommand().setPattern(
     async (message, groups) => {
         let prompt = groups[2];
         if (/^reset$/gimu.exec(prompt.trim()) !== null) {
-            if (typeof global.GPTMessages !== 'undefined') {
-                if (global.GPTMessages.has(message.channel.id)) {
-                    global.GPTMessages.set(message.channel.id, []);
-                }
+            if (GPTMessages.has(message.channel.id)) {
+                GPTMessages.set(message.channel.id, []);
             }
         }
         const configuration = new Configuration({
@@ -51,7 +49,7 @@ const GPT = new RegexCommand().setPattern(
             await message.channel.send("Sorry, TomGPT request failed.");
             GPTMessages.get(message.channel.id).pop();
         }
-        while (GPTMessages.get(message.channel.id).length > 100) {
+        while (GPTMessages.get(message.channel.id).length > 20) {
             GPTMessages.get(message.channel.id).splice(1, 1);
         }
     }
