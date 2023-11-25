@@ -1,43 +1,49 @@
-var Message = require("discord.js").Message;
-var RegexCommand = /** @class */ (function () {
-    function RegexCommand() {
+const { Message } = require("discord.js");
+
+class RegexCommand {
+    regexPatterns : Array<RegExp>;
+    requiresGroups: boolean;
+    requiresRegexIndex: boolean;
+    commandFunction: (message?: any, matches?: Array<String>, regexIndex?: Number) => void;
+
+    constructor() {
         this.regexPatterns = [];
         this.requiresGroups = false;
         this.requiresRegexIndex = false;
-        this.commandFunction = function () {
-            console.log("Executing default command!");
-        };
+        this.commandFunction = () => {
+            console.log("Executing default command");
+        }
     }
-    RegexCommand.prototype.setPattern = function (pattern) {
+    setPattern(pattern : RegExp) {
         this.regexPatterns = [pattern];
         return this;
-    };
-    RegexCommand.prototype.setPatterns = function (patterns) {
+    }
+    setPatterns(patterns: RegExp[]) {
         this.regexPatterns = patterns;
         return this;
-    };
-    RegexCommand.prototype.setCalledFunction = function (fxn) {
+    }
+    setCalledFunction(fxn : (...args: any) => void) {
         this.commandFunction = fxn;
         return this;
-    };
-    RegexCommand.prototype.setGroupsRequirement = function (boolValue) {
+    }
+    setGroupsRequirement(boolValue : boolean) {
         if (boolValue === false) {
             this.requiresRegexIndex = false;
         }
         this.requiresGroups = boolValue;
         return this;
-    };
-    RegexCommand.prototype.setRegexIndexRequirement = function (boolValue) {
+    }
+    setRegexIndexRequirement(boolValue : boolean) {
         if (boolValue === true) {
             this.requiresGroups = true;
         }
         this.requiresRegexIndex = boolValue;
         return this;
-    };
-    RegexCommand.prototype.exec = function (message) {
+    }
+    exec(message: any) {
         try {
-            for (var i = 0; i < this.regexPatterns.length; ++i) {
-                var matches = this.regexPatterns[i].exec(message.content);
+            for (let i = 0; i < this.regexPatterns.length; ++i) {
+                let matches = this.regexPatterns[i].exec(message.content);
                 this.regexPatterns[i].lastIndex = 0;
                 if (matches !== null) {
                     if (this.requiresRegexIndex == true) {
@@ -56,7 +62,7 @@ var RegexCommand = /** @class */ (function () {
         catch (e) {
             console.log("Error: ", e);
         }
-    };
-    return RegexCommand;
-}());
+    }
+}
+
 module.exports = RegexCommand;

@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
-const commands = require("./commands/Commands");
+const commands = require("./commands.js");
 
 const client = new Client({
     intents: [
@@ -28,5 +28,5 @@ client.on("messageCreate", async(message) => {
 
 module.exports = () => {
     client.login(`${process.env.DISCORD_TOKEN}`);
-    console.log("Logged into Discord!");
+    console.log("Logged into Discord");
 };

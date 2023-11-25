@@ -1,5 +1,6 @@
+const RegexCommand = require("../RegexCommand");
+
 const { createCanvas, loadImage } = require('canvas');
-const RegexCommand = require("./RegexCommand");
 const axios = require("axios");
 const Discord = require("discord.js");
 
@@ -50,8 +51,7 @@ const iAmAtRegex = new RegExp(
 
 const failureMessage = "Couldn't get there, sorry."
 
-module.exports = {
-    iAmAt: new RegexCommand().setPattern(iAmAtRegex).setGroupsRequirement(true).setCalledFunction( async (message, matches) => {
+module.exports = new RegexCommand().setPattern(iAmAtRegex).setGroupsRequirement(true).setCalledFunction( async (message, matches) => {
         const location = matches[7];
         const topText  = matches[3];
         
@@ -137,4 +137,3 @@ module.exports = {
         }
         console.log("Reached end of iAmAt function");
 })
-}

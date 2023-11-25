@@ -1,65 +1,11 @@
 const RegexCommand = require("./RegexCommand");
-const axios = require("axios")
-const {iAmAt} = require("./IAmAt.js");
-const { Configuration, OpenAIApi } = require("openai");
+const axios = require("axios");
+const iAmAt = require("./commands/IAmAt");
+const GPT = require("./commands/GPT");
 
 module.exports = {
     iAmAt: iAmAt,
-    //short commands
-    gpt: new RegexCommand().setPattern(
-        /\b^(?:(tomgpt[,. ]*?\s*))(.*)/gimu
-    ).setGroupsRequirement(true).setCalledFunction(
-        async (message, groups) => {
-            let prompt = groups[2];
-            if (/^reset$/gimu.exec(prompt.trim()) !== null) {
-                if (typeof global.GPTMessages !== 'undefined') {
-                    if (global.GPTMessages.has(message.channel.id)) {
-                        global.GPTMessages.set(message.channel.id, []);
-                    }
-                }
-            }
-            const configuration = new Configuration({
-              apiKey: process.env.OPENAI_TOKEN,
-            });
-            const openai = new OpenAIApi(configuration);
-            if (typeof global.GPTMessages === 'undefined') {
-                global.GPTMessages = new Map();
-            }
-            if (!global.GPTMessages.has(message.channel.id)) {
-                global.GPTMessages.set(message.channel.id, []);
-            }
-            try {
-                if (global.GPTMessages.get(message.channel.id).length === 0) {
-                    global.GPTMessages.get(message.channel.id).push( { //get() returns reference to object
-                        "role": "user",
-                        "content": "Pretend you are Tom Scott, the educational YouTuber. Reply to every message from now on as if you were him."
-                    } );
-                }
-                global.GPTMessages.get(message.channel.id).push( {
-                    "role": "user",
-                    "content": prompt
-                } );
-                
-                const completion = await openai.createChatCompletion({
-                    model: "gpt-3.5-turbo",
-                    messages: global.GPTMessages.get(message.channel.id)
-                });
-                await message.channel.send(completion.data.choices[0].message.content.trim());
-                global.GPTMessages.get(message.channel.id).push( {
-                    "role": "assistant",
-                    "content": completion.data.choices[0].message.content.trim()
-                })
-            }
-            catch (e) {
-                console.log(e);
-                await message.channel.send("Sorry, TomGPT request failed.");
-                global.GPTMessages.get(message.channel.id).pop(); //last user message
-            }
-            while (global.GPTMessages.get(message.channel.id).length > 100) {
-                global.GPTMessages.get(message.channel.id).splice(1, 1);
-            }
-        }
-    ),
+    gpt: GPT,
     piss: new RegexCommand().setPattern(/\b\d*?(pee|wees|pees|pisses|urinates|piss|peeing|pissing|peed|urination|urinate|urine|urinated|micturition)\d*?\b/gimu).setCalledFunction( (message) => {
         message.channel.send({ files: ["media/piss.jpg"] });
         if (Math.random() >= 0.69) {
