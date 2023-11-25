@@ -19,26 +19,25 @@ const GPT = new RegexCommand().setPattern(
           apiKey: process.env.OPENAI_TOKEN,
         });
         const openai = new OpenAIApi(configuration);
-        if (typeof GPTMessages === 'undefined') {
-            GPTMessages = new Map();
-        }
         if (!GPTMessages.has(message.channel.id)) {
             GPTMessages.set(message.channel.id, []);
         }
         try {
+            if (process.env.DEFAULT_GPT_MODEL === undefined || process.env.DEFAULT_GPT_MODEL === "") {
+                throw new Error("No GPT model configured in .env file. Aborting...");
+            }
             if (GPTMessages.get(message.channel.id).length === 0) {
                 GPTMessages.get(message.channel.id).push({
                     "role": "user",
-                    "content": "Pretend you have a background in theoretical computer science. Reply to any question with a correct mathematical proof for the answer."
+                    "content": "Pretend you are Tom Scott, the educational YouTuber. Reply to every message from now on as if you were him."
                 } );
             }
             GPTMessages.get(message.channel.id).push({
                 "role": "user",
                 "content": prompt
             } );
-            
             const completion = await openai.createChatCompletion({
-                model: process.env.DEFAULT_GPT_MODEL || "gpt-3-turbo",
+                model: process.env.DEFAULT_GPT_MODEL,
                 messages: GPTMessages.get(message.channel.id)
             });
             await message.channel.send(completion.data.choices[0].message.content.trim());
