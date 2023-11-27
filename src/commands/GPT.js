@@ -1,7 +1,9 @@
-const { Configuration, OpenAIApi } = require("openai");
+import OpenAI from "openai";
 const RegexCommand = require("../RegexCommand");
 
+
 var GPTMessages = new Map();
+
 
 const GPT = new RegexCommand().setPattern(
     /\b^(?:(tomgpt[,. ]*?\s*))(.*)/gimu
@@ -13,14 +15,13 @@ const GPT = new RegexCommand().setPattern(
                 GPTMessages.set(message.channel.id, []);
             }
         }
-        const configuration = new Configuration({
-          apiKey: process.env.OPENAI_TOKEN,
-        });
-        const openai = new OpenAIApi(configuration);
         if (!GPTMessages.has(message.channel.id)) {
             GPTMessages.set(message.channel.id, []);
         }
         try {
+            const openai = new OpenAI({
+                apiKey: process.env.OPENAI_TOKEN
+            })
             if (process.env.DEFAULT_GPT_MODEL === undefined || process.env.DEFAULT_GPT_MODEL === "") {
                 throw new Error("No GPT model configured in .env file. Aborting...");
             }
@@ -34,19 +35,19 @@ const GPT = new RegexCommand().setPattern(
                 "role": "user",
                 "content": prompt
             } );
-            const completion = await openai.createChatCompletion({
+            const completion = await openai.chat.completions.create({
                 model: process.env.DEFAULT_GPT_MODEL,
                 messages: GPTMessages.get(message.channel.id)
             });
-            await message.channel.send(completion.data.choices[0].message.content.trim());
+            await message.channel.send(completion.choices[0].message.content.trim());
             GPTMessages.get(message.channel.id).push( {
                 "role": "assistant",
-                "content": completion.data.choices[0].message.content.trim()
+                "content": completion.choices[0].message.content.trim()
             })
         }
         catch (e) {
             console.log(e);
-            await message.channel.send("Sorry, TomGPT request failed.");
+            await message.channel.send(`Sorry, TomGPT request failed. (${e})`);
             GPTMessages.get(message.channel.id).pop();
         }
         while (GPTMessages.get(message.channel.id).length > 20) {
