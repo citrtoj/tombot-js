@@ -39,10 +39,18 @@ const GPT = new RegexCommand().setPattern(
                 model: process.env.DEFAULT_GPT_MODEL,
                 messages: GPTMessages.get(message.channel.id)
             });
-            await message.channel.send(completion.choices[0].message.content.trim());
+            var gptResponse = completion.choices[0].message.content.trim();
+            // split into 2000-character chunks, disregarding words and everything
+            const chunkSize = 2000;
+            var chunks = [];
+
+            for (var i = 0; i < gptResponse.length; i += chunkSize) {
+                await message.channel.send(gptResponse.substring(i, i + chunkSize));
+            }
+
             GPTMessages.get(message.channel.id).push( {
                 "role": "assistant",
-                "content": completion.choices[0].message.content.trim()
+                "content": gptResponse
             })
         }
         catch (e) {
