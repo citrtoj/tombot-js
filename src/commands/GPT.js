@@ -64,7 +64,6 @@ const GPT = new RegexCommand()
         content: gptResponse,
       });
     } catch (e) {
-      console.log(e);
       await message.channel.send(`Sorry, TomGPT request failed. (${e})`);
       GPTMessages.get(message.channel.id).pop();
     }
