@@ -73,6 +73,37 @@ const REGEX = new RegExp(
 
 const ERROR_MESSAGE = "Couldn't get there, sorry.";
 
+const getImageFromMessage = (message) => {
+  if (message.attachments.size > 0) {
+    const attachment = message.attachments.find(
+      (attachment) =>
+        attachment.contentType && attachment.contentType.startsWith("image/")
+    );
+
+    if (!attachment) return null;
+    return attachment.url;
+  }
+  return null;
+};
+
+const getImageFromMessageOrPrevMessage = async (message) => {
+  const URL = getImageFromMessage(message);
+  if (URL) {
+    return URL;
+  }
+
+  if (message.reference) {
+    try {
+      let referencedMessage = await message.channel.messages.fetch(
+        message.reference.messageId
+      );
+      return getImageFromMessage(referencedMessage);
+    } catch (err) {
+      return null;
+    }
+  }
+};
+
 module.exports = new RegexCommand()
   .setPattern(REGEX)
   .setGroupsRequirement(true)
@@ -96,25 +127,28 @@ module.exports = new RegexCommand()
     let backgroundURL;
     let imgflipURL;
 
-    // search query on the web
-    try {
-      const imgSearchResponse = await axios.get(
-        `https://customsearch.googleapis.com/customsearch/v1?q=${location}&cx=${googleCX}&key=${googleAPIKey}&searchType=image`
-      );
-      let background =
-        imgSearchResponse.data.items[
-          Math.floor(Math.random() * imgSearchResponse.data.items.length)
-        ];
-      backgroundURL = background.link;
-    } catch (e) {
-      message.channel.send(
-        ERROR_MESSAGE + " (Could not obtain background image link)"
-      );
-      console.error("Could not obtain background image link.", e);
-      return;
+    const attachmentURL = await getImageFromMessageOrPrevMessage(message);
+    if (attachmentURL) {
+      backgroundURL = attachmentURL;
+    } else {
+      try {
+        const imgSearchResponse = await axios.get(
+          `https://customsearch.googleapis.com/customsearch/v1?q=${location}&cx=${googleCX}&key=${googleAPIKey}&searchType=image`
+        );
+        let background =
+          imgSearchResponse.data.items[
+            Math.floor(Math.random() * imgSearchResponse.data.items.length)
+          ];
+        backgroundURL = background.link;
+      } catch (e) {
+        message.channel.send(
+          ERROR_MESSAGE + " (Could not obtain background image link)"
+        );
+        console.error("Could not obtain background image link.", e);
+        return;
+      }
     }
 
-    // get URL of imgflip image
     try {
       const imgflipTemplate = "343044476";
       const imgflipResponse = await axios.get(
@@ -129,7 +163,6 @@ module.exports = new RegexCommand()
       return;
     }
 
-    //THIRD STEP: make a canvas of size 1280x720; crop BG image accordingly, greenscreen imgflip image, paste it on top
     try {
       const canvas = createCanvas(1280, 720);
       const secondCanvas = createCanvas(1280, 720);
@@ -149,7 +182,6 @@ module.exports = new RegexCommand()
         canvasRes.width,
         canvasRes.height
       );
-      console.log(cropCoords);
       ctx.drawImage(
         bgImage,
         cropCoords.sx,
