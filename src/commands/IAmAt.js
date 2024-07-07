@@ -67,7 +67,7 @@ const prepositions = [
 const REGEX = new RegExp(
   "\\b(tombot)[,.?!]*? (((i am|i'm) *(" +
     prepositions.join("|") +
-    "))( *)(.*?)\\b$)",
+    "))(s*)(.*)\n?)",
   "gimu"
 );
 
@@ -108,8 +108,10 @@ module.exports = new RegexCommand()
   .setPattern(REGEX)
   .setGroupsRequirement(true)
   .setCalledFunction(async (message, matches) => {
-    const location = matches[7];
-    const topText = matches[3];
+    const location = matches[7].trim();
+    const topText = matches[3].trim();
+
+    console.log(matches);
 
     await message.channel.send(`*Travelling to ${location}...*`);
 
